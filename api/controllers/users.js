@@ -28,8 +28,8 @@ exports.create = async (req, res, next) => {
         } });
     }
     // send email verificqtion before create the user
-    const sendMail = utils.sendEmail('oussbak16@gmail.com', user.email, 'verification mail', 'verification mail');
-    
+    const sendMail = utils.sendEmail(user.email, 'verification mail', 'verification mail');
+    console.log(sendMail);
     if (sendMail) {
 
       await user.save();
@@ -37,6 +37,15 @@ exports.create = async (req, res, next) => {
       return res.status(201).send({
         message: {
           'en': { phone: 'user created, email verification sent' },
+          'ar': { phone: 'تم إنشاء المستخدم ، تم إرسال التحقق من البريد الإلكتروني' },
+          'fr': { phone: 'utilisateur créé, vérification par e-mail envoyée' }
+        }
+      });
+    }
+    else {
+      return res.status(400).send({
+        message: {
+          'en': { phone: 'jhgjh' },
           'ar': { phone: 'تم إنشاء المستخدم ، تم إرسال التحقق من البريد الإلكتروني' },
           'fr': { phone: 'utilisateur créé, vérification par e-mail envoyée' }
         }

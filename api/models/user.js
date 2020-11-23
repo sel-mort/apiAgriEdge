@@ -6,7 +6,7 @@ const userSchema = new Schema({
   email: { type: String, unique: true, required: true },
   phone: { type: String, unique: true},
   emailVerified: { type: Boolean, default: false },
-  password: { type: String, select: false }
+  password: { type: String }
 });
 
 userSchema.pre('save', function(next) {
@@ -44,14 +44,7 @@ userSchema.statics.phoneExists = async phone => {
 userSchema.statics.getUserByEmail = async email => {
   const user = await model('User').findOne({ email });
 
-  console.log(user);
-  return !!user;
-};
-
-userSchema.methods.isValidPassword = async function(password) {
-  const compare = await bcryptjs.compare(password, this.password);
-
-  return compare;
+  return user;
 };
 
 module.exports = model('User', userSchema);

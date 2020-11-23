@@ -2,6 +2,8 @@ const utils = require('../utils');
 
 const User = require('../models/user');
 
+const bcryptjs = require("bcryptjs");
+
 //const passport = require('../middlewares/passport');
 
 exports.create = async (req, res, next) => {
@@ -12,9 +14,9 @@ exports.create = async (req, res, next) => {
 
     if (emailExists) {
       return res.status(403).send({ error: { 
-          'en': { email: 'email already exists' },
-          'ar': { email: 'البريد الالكتروني موجود بالفعل' },
-          'fr': { email: 'l\'email existe déjà' }
+          'en': 'email already exists',
+          'ar': 'البريد الالكتروني موجود بالفعل',
+          'fr': 'l\'email existe déjà'
         } });
     }
 
@@ -22,32 +24,32 @@ exports.create = async (req, res, next) => {
 
     if (phoneExists) {
       return res.status(403).send({ error: { 
-          'en': { phone: 'phone already exists' },
-          'ar': { phone: 'الهاتف موجود بالفعل' },
-          'fr': { phone: 'le téléphone existe déjà' }
+          'en': 'phone already exists',
+          'ar': 'الهاتف موجود بالفعل',
+          'fr': 'le téléphone existe déjà'
         } });
     }
     // send email verificqtion before create the user
     const sendMail = utils.sendEmail(user.email, 'verification mail', 'verification mail');
-    console.log(sendMail)
+
     if (sendMail) {
 
       await user.save();
 
       return res.status(201).send({
         message: {
-          'en': { phone: 'user created, email verification sent' },
-          'ar': { phone: 'تم إنشاء المستخدم ، تم إرسال التحقق من البريد الإلكتروني' },
-          'fr': { phone: 'utilisateur créé, vérification par e-mail envoyée' }
+          'en': 'user created, email verification sent',
+          'ar': 'تم إنشاء المستخدم ، تم إرسال التحقق من البريد الإلكتروني',
+          'fr': 'utilisateur créé, vérification par e-mail envoyée'
         }
       });
     }
     else {
       return res.status(400).send({
         message: {
-          'en': { phone: 'jhgjh' },
-          'ar': { phone: 'تم إنشاء المستخدم ، تم إرسال التحقق من البريد الإلكتروني' },
-          'fr': { phone: 'utilisateur créé, vérification par e-mail envoyée' }
+          'en': 'something went wrong',
+          'ar': 'هناك خطأ ما',
+          'fr': 'quelque chose s\'est mal passé'
         }
       });
     }
@@ -61,30 +63,38 @@ exports.create = async (req, res, next) => {
 exports.login = async (req, res, next) => {
   try {
     const user = await User.getUserByEmail(req.body.email);
-
+    console.log(user)
     if (user) {
-      const validPassword = await User.isValidPassword(req.body.password);
-
-      if (validPassword) {
+      const isValidPassword = await bcryptjs.compare(req.body.password, user.password);
+      if (isValidPassword) {
 
         if (user.emailVerified) {
 
-          const token = utils.generateToken({'_id': user._id, 'email': user._email});
+          const token = utils.generateToken({'_id': user._id, 'email': user.email});
 
           return res.status(200).send({ message: {
-            'en': { token: token },
-            'ar': { token: token },
-            'fr': { token: token }
+            'en': token,
+            'ar': token,
+            'fr': token
+          } });
+        } else {
+          return res.status(200).send({ message: {
+            'en': "email not verified, check your inbox",
+            'ar': "لم يتم التحقق من البريد الإلكتروني ، تحقق من صندوق الوارد الخاص بك",
+            'fr': "email non vérifié, vérifiez votre boîte de réception"
           } });
         }
       }
-    }
-    return res.status(403).send({ error: { 
-      'en': { user: 'invalid credentials' },
-      'ar': { user: '' },
-      'fr': { user: '' }
-    } });
+    } else {
+        return res.status(403).send({ error: { 
+          'en': 'invalid credentials',
+          'ar': 'بيانات الاعتماد غير صالحة',
+          'fr': 'les informations d\'identification invalides'
+      } });
+  }
+    
   } catch (err) {
+    console.log(err)
     next(err);
   }
 };

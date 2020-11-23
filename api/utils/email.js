@@ -11,7 +11,7 @@ exports.sendEmail = (to, message, subject) => {
       service: 'gmail',
       auth: {
           user: 'oussbak16@gmail.com',
-          pass: 'jhgjhgjg'
+          pass: 'ptudootdtysfdgxl'
       }
   });
 

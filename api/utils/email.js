@@ -1,4 +1,5 @@
 const nodemailer = require('nodemailer');
+const { resolve } = require('path');
 
 
 exports.sendEmail = (to, message, subject) => {
@@ -10,7 +11,7 @@ exports.sendEmail = (to, message, subject) => {
       service: 'gmail',
       auth: {
           user: 'oussbak16@gmail.com',
-          pass: 'kqxolyblhemfblll'
+          pass: 'jhgjhgjg'
       }
   });
 
@@ -20,14 +21,11 @@ exports.sendEmail = (to, message, subject) => {
       subject: subject,
       html: message
   };
-  var send;
-  transporter.sendMail(mailOptions, this.send = function (error, info) {
-      if (error) {
-          return false;
-      } else {
-          return true;
-      }
-  });
-  console.log(send)
-  return send;
+
+  try {
+     transporter.sendMail(mailOptions);
+     return true;
+  } catch (error) {
+    return false;
+  }
 }

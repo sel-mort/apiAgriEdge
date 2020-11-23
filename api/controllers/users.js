@@ -29,7 +29,7 @@ exports.create = async (req, res, next) => {
     }
     // send email verificqtion before create the user
     const sendMail = utils.sendEmail(user.email, 'verification mail', 'verification mail');
-    console.log(sendMail);
+    console.log(sendMail)
     if (sendMail) {
 
       await user.save();

@@ -1,10 +1,10 @@
 const { Schema, model } = require('mongoose');
-//const utils = require('../utils');
 const bcryptjs = require('bcryptjs');
 
 const userSchema = new Schema({
   fullName: { type: String, required: true },
   email: { type: String, unique: true, required: true },
+  phone: { type: String, unique: true},
   emailVerified: { type: Boolean, default: false },
   password: { type: String, select: false }
 });
@@ -32,6 +32,19 @@ userSchema.statics.idExists = async _id => {
 userSchema.statics.emailExists = async email => {
   const user = await model('User').findOne({ email });
 
+  return !!user;
+};
+
+userSchema.statics.phoneExists = async phone => {
+  const user = await model('User').findOne({ phone });
+
+  return !!user;
+};
+
+userSchema.statics.getUserByEmail = async email => {
+  const user = await model('User').findOne({ email });
+
+  console.log(user);
   return !!user;
 };
 

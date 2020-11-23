@@ -4,17 +4,16 @@ const logger = require('morgan');
 const mongoose = require('mongoose');
 const cors = require('cors');
 
-/*const indexRouter = require('./api/routes/index');
-const moviesRouter = require('./api/routes/movies');
-const streamRouter = require('./api/routes/stream');*/
+/*const indexRouter = require('./api/routes/index');*/
 const usersRouter = require('./api/routes/users');
 
 const app = express();
 
-/*mongoose.connect(`mongodb://${process.env.DATABASE_URL}/hypertube`, {
+mongoose.connect("mongodb+srv://oussama:tf3laychf@agriedge.idzlf.mongodb.net/apiagriedge?retryWrites=true&w=majority", {
   useNewUrlParser: true,
-  useUnifiedTopology: true
-});*/
+  useUnifiedTopology: true,
+  useCreateIndex: true
+});
 
 // Config socket.io
 const server = require('http').createServer(app);
@@ -30,9 +29,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(express.static(path.join(__dirname, 'public')));
 
-/*app.use('/', indexRouter);
-app.use('/api/v1/movies', moviesRouter);
-app.use('/api/v1/stream', streamRouter);*/
+/*app.use('/', indexRouter);*/
 app.use('/api/users', usersRouter);
 
 app.use((req, res, next) => {

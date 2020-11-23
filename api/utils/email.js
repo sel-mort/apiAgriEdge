@@ -17,6 +17,7 @@ exports.sendEmail = (from, to, subject, body) => {
       html: body
     },
     (err, info) => {
+      console.log(err);
       if (err) return reject(err);
 
       resolve(info);

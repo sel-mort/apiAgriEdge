@@ -1,48 +1,83 @@
-//const utils = require('../utils');
+const utils = require('../utils');
 
 const User = require('../models/user');
 
 //const passport = require('../middlewares/passport');
 
 exports.create = async (req, res, next) => {
- // const user = new User(req.body);
-
+  const user = new User(req.body);
   try {
 
-    /*const emailExists = await User.emailExists(req.body.email);
+    const emailExists = await User.emailExists(req.body.email);
 
     if (emailExists) {
-      return res.status(403).send({ error: { email: 'already exists' } });
+      return res.status(403).send({ error: { 
+          'en': { email: 'email already exists' },
+          'ar': { email: 'البريد الالكتروني موجود بالفعل' },
+          'fr': { email: 'l\'email existe déjà' }
+        } });
     }
 
-    const newUser = await user.save();*/
+    const phoneExists = await User.phoneExists(req.body.phone);
 
-    return res.status(201).send({
-      message: 'User created',
-      user: {
-        /*_id: newUser._id,
-        username: newUser.username,
-        email: newUser.email*/
-      }
-    });
+    if (phoneExists) {
+      return res.status(403).send({ error: { 
+          'en': { phone: 'phone already exists' },
+          'ar': { phone: 'الهاتف موجود بالفعل' },
+          'fr': { phone: 'le téléphone existe déjà' }
+        } });
+    }
+    // send email verificqtion before create the user
+    const sendMail = utils.sendEmail('oussbak16@gmail.com', user.email, 'verification mail', 'verification mail');
+    
+    if (sendMail) {
+
+      await user.save();
+
+      return res.status(201).send({
+        message: {
+          'en': { phone: 'user created, email verification sent' },
+          'ar': { phone: 'تم إنشاء المستخدم ، تم إرسال التحقق من البريد الإلكتروني' },
+          'fr': { phone: 'utilisateur créé, vérification par e-mail envoyée' }
+        }
+      });
+    }
+    
   } catch (err) {
-      console.log(err)
+    console.log(err);
     next(err);
   }
 };
 
-exports.login = (req, res, next) => {
-  passport.authenticate('login', (err, user, info) => {
-    if (err) return next(err);
+exports.login = async (req, res, next) => {
+  try {
+    const user = await User.getUserByEmail(req.body.email);
 
-    if (info) return res.status(401).send(info);
+    if (user) {
+      const validPassword = await User.isValidPassword(req.body.password);
 
-    const payload = { _id: user._id };
-    const token = utils.generateToken(payload);
+      if (validPassword) {
 
-    req.user = token;
-    next();
-  })(req, res, next);
+        if (user.emailVerified) {
+
+          const token = utils.generateToken({'_id': user._id, 'email': user._email});
+
+          return res.status(200).send({ message: {
+            'en': { token: token },
+            'ar': { token: token },
+            'fr': { token: token }
+          } });
+        }
+      }
+    }
+    return res.status(403).send({ error: { 
+      'en': { user: 'invalid credentials' },
+      'ar': { user: '' },
+      'fr': { user: '' }
+    } });
+  } catch (err) {
+    next(err);
+  }
 };
 
 exports.me = (req, res, next) => {

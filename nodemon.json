@@ -3,12 +3,6 @@
       "JWT_KEY": "apiAgriEdge",
       "DATABASE_URL": "mongodb+srv://oussama:tf3laychf@agriedge.idzlf.mongodb.net/apiagriedge?retryWrites=true&w=majority",
       "EMAIL": "oussbak16@gmail.com",
-      "EMAIL_PASSWORD": "Tf3laychf",
-      "GOOGLE_CLIENT_ID": "",
-      "GOOGLE_CLIENT_SECRET": "",
-      "FORTYTWO_CLIENT_ID": "",
-      "FORTYTWO_CLIENT_SECRET": "",
-      "FACEBOOK_APP_ID": "",
-      "FACEBOOK_APP_SECRET": ""
+      "EMAIL_PASSWORD": "ptudootdtysfdgxl"
     }
   }

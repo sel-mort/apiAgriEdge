@@ -1,3 +1,4 @@
+const { rejects } = require('assert');
 const nodemailer = require('nodemailer');
 const { resolve } = require('path');
 
@@ -10,21 +11,21 @@ exports.sendEmail = (to, message, subject) => {
       secure: false, // true for 465,
       service: 'gmail',
       auth: {
-          user: 'oussbak16@gmail.com',
-          pass: 'ptudootdtysfdgxl'
+          user: "oussbak16@gmail.com",
+          pass: "ptudootdtysfdgxl"
       }
   });
 
   var mailOptions = {
-      from: 'oussbak16@gmail.com',
+      from: process.env.EMAIL,
       to: to,
       subject: subject,
       html: message
   };
 
   try {
-     transporter.sendMail(mailOptions);
-     return true;
+    transporter.sendMail(mailOptions);
+    return true;
   } catch (error) {
     return false;
   }

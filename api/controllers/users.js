@@ -6,7 +6,7 @@ const bcryptjs = require("bcryptjs");
 
 //const passport = require('../middlewares/passport');
 
-exports.create = async (req, res, next) => {
+exports.create = async (req, res) => {
   const user = new User(req.body);
   try {
 
@@ -30,8 +30,10 @@ exports.create = async (req, res, next) => {
         } });
     }
     // send email verificqtion before create the user
-    const sendMail = utils.sendEmail(user.email, 'verification mail', 'verification mail');
-
+    user.token = utils.generateToken({email: user.email});
+    const sendMail = utils.sendEmail(user.email, 'verification mail',
+      `<a href="https://localhost:4000/api/users/verify/${user.token}">Verify my account</a>`);
+      
     if (sendMail) {
 
       await user.save();
@@ -46,7 +48,7 @@ exports.create = async (req, res, next) => {
     }
     else {
       return res.status(400).send({
-        message: {
+        error: {
           'en': 'something went wrong',
           'ar': 'هناك خطأ ما',
           'fr': 'quelque chose s\'est mal passé'
@@ -55,15 +57,20 @@ exports.create = async (req, res, next) => {
     }
     
   } catch (err) {
-    console.log(err);
-    next(err);
+      return res.status(400).send({
+        error: {
+          'en': 'something went wrong',
+          'ar': 'هناك خطأ ما',
+          'fr': 'quelque chose s\'est mal passé'
+        }
+      });
   }
 };
 
-exports.login = async (req, res, next) => {
+exports.login = async (req, res) => {
   try {
     const user = await User.getUserByEmail(req.body.email);
-    console.log(user)
+
     if (user) {
       const isValidPassword = await bcryptjs.compare(req.body.password, user.password);
       if (isValidPassword) {
@@ -72,54 +79,134 @@ exports.login = async (req, res, next) => {
 
           const token = utils.generateToken({'_id': user._id, 'email': user.email});
 
-          return res.status(200).send({ message: {
-            'en': token,
-            'ar': token,
-            'fr': token
-          } });
+          return res.status(200).send({ message: { 'en': token, 'ar': token, 'fr': token} });
+
         } else {
-          return res.status(200).send({ message: {
-            'en': "email not verified, check your inbox",
-            'ar': "لم يتم التحقق من البريد الإلكتروني ، تحقق من صندوق الوارد الخاص بك",
-            'fr': "email non vérifié, vérifiez votre boîte de réception"
-          } });
+            return res.status(200).send({ message: {
+              'en': "email not verified, check your inbox",
+              'ar': "لم يتم التحقق من البريد الإلكتروني ، تحقق من صندوق الوارد الخاص بك",
+              'fr': "email non vérifié, vérifiez votre boîte de réception"
+            } });
         }
       }
     } else {
-        return res.status(403).send({ error: { 
-          'en': 'invalid credentials',
-          'ar': 'بيانات الاعتماد غير صالحة',
-          'fr': 'les informations d\'identification invalides'
+      return res.status(401).send({ error: { 
+        'en': 'invalid credentials',
+        'ar': 'بيانات الاعتماد غير صالحة',
+        'fr': 'les informations d\'identification invalides'
       } });
   }
     
   } catch (err) {
-    console.log(err)
-    next(err);
+      return res.status(400).send({
+        error: {
+          'en': 'something went wrong',
+          'ar': 'هناك خطأ ما',
+          'fr': 'quelque chose s\'est mal passé'
+        }
+      });
   }
 };
 
-exports.me = (req, res, next) => {
+exports.forgotPassword = async (req, res) => {
   try {
-    res.status(200).send(req.user);
-  } catch (err) {
-    next(err);
-  }
-};
+    const token = utils.generateToken({email: req.body.email});
+    const sendMail = utils.sendEmail(req.body.email, 'reset password',
+      `<a href="https://localhost:4200/users/resetpassword/${token}">reset my password</a>`);
 
-exports.getUserByUsername = async (req, res, next) => {
-  try {
-    const user = await User.findOne({ username: req.params.username })
-      .select('-_id')
-      .select('firstName')
-      .select('lastName');
-
-    if (!user) {
-      return res.status(404).send({ message: 'resource not found' });
+    if (sendMail) {
+      return res.status(200).send({
+        message: {
+          'en': 'reset password email sent',
+          'ar': 'تم إرسال البريد الإلكتروني لإعادة تعيين كلمة المرور',
+          'fr': 'e-mail de réinitialisation du mot de passe envoyé'
+        }
+      })
     }
-    res.status(200).send({ exists: true });
+    else {
+      return res.status(400).send({
+        error: {
+          'en': 'something went wrong',
+          'ar': 'هناك خطأ ما',
+          'fr': 'quelque chose s\'est mal passé'
+        }
+      });
+    }
+
   } catch (err) {
-    next(err);
+
+    return res.status(400).send({
+      error: {
+        'en': 'something went wrong',
+        'ar': 'هناك خطأ ما',
+        'fr': 'quelque chose s\'est mal passé'
+      }
+    })
+  }
+}
+
+exports.resetPassword = async (req, res) => {
+  try {
+    const verifyToken = await utils.verfiyToken(req.params.token);
+    const user = await User.getUserByEmail(verifyToken.email);
+
+    if (user) {
+      const newPassword = await bcryptjs.hash(req.body.password, 10);
+      await User.updateOne(
+        { email: user.email },
+        {
+          $set: { password: newPassword }
+        }
+      );
+      return res.status(200).send({
+        message: {
+          'en': 'password reseted successfully',
+          'fr': 'réinitialisation du mot de passe avec succès',
+          'ar': 'تمت إعادة تعيين كلمة المرور بنجاح'
+        } });
+    }
+    else {
+      return res.status(401).send({
+        error: {
+          'en': 'something went wrong',
+          'ar': 'هناك خطأ ما',
+          'fr': 'quelque chose s\'est mal passé'
+        }
+      })
+    }
+
+  } catch (err) {
+      return res.status(401).send({
+        error: {
+          'en': 'something went wrong',
+          'ar': 'هناك خطأ ما',
+          'fr': 'quelque chose s\'est mal passé'
+        }
+      })
+  }
+}
+
+exports.verify = async (req, res) => {
+  try {
+    const verifyToken = await utils.verfiyToken(req.params.token);
+    
+    const user = await User.getUserByEmail(verifyToken.email);
+    
+    if (user) {
+      await User.updateOne(
+        { email: user.email },
+        {
+          $set: { emailVerified: true }
+        }
+      );
+      res.status(200).send({ message: {'en': 'user verified', 'fr': 'utilisateur vérifié', 'ar': 'تم التحقق من المستخدم'} });
+    }
+    else {
+      res.status(400).send({ error: {'en': 'invalid token', 'fr': 'jeton invalide', 'ar': 'رمز غير صالح'} });
+    }
+    
+  } catch (err) {
+    res.status(400).send({ error: {'en': 'invalid token', 'fr': 'jeton invalide', 'ar': 'رمز غير صالح'} });
   }
 };
 
@@ -163,20 +250,10 @@ exports.update = async (req, res, next) => {
   }
 };
 
-exports.verify = async (req, res, next) => {
+exports.me = (req, res, next) => {
   try {
-    await User.updateOne(
-      { _id: req.user.id },
-      {
-        $set: { verfied: true }
-      }
-    );
-    res.status(200).send({ message: 'user verified' });
+    res.status(200).send(req.user);
   } catch (err) {
     next(err);
   }
-};
-
-exports.authToken = (req, res) => {
-  res.status(200).send({ token: req.user });
 };

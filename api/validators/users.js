@@ -1,8 +1,10 @@
 const Joi = require('@hapi/joi');
 
+const phonePattern = /^[+][(]{0,1}[0-9]{1,4}[)]{0,1}[\s\./0-9]*$/;
+
 const fullName = Joi.string().min(3).max(100).required();
 const email =  Joi.string().email().required();
-const phone = Joi.string();
+const phone = Joi.string().regex(phonePattern);
 const password = Joi.string().min(4).max(100).required();
 const repeatPassword = Joi.any().valid(Joi.ref('password')).required();
 const token = Joi.string().required();

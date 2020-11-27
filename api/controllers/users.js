@@ -13,7 +13,7 @@ exports.create = async (req, res) => {
     const emailExists = await User.emailExists(req.body.email);
 
     if (emailExists) {
-      return res.status(403).send({ error: { 
+      return res.status(403).send({ error: {
           'en': 'email already exists',
           'ar': 'البريد الالكتروني موجود بالفعل',
           'fr': 'l\'email existe déjà'

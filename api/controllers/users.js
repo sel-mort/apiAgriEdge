@@ -69,7 +69,7 @@ exports.create = async (req, res) => {
 
 exports.login = async (req, res) => {
   try {
-    const user = await User.getUserByEmail(req.body.email);
+    const user = await User.getUserByProp(req.body.email);
 
     if (user) {
       const isValidPassword = await bcryptjs.compare(req.body.password, user.password);
@@ -148,7 +148,7 @@ exports.forgotPassword = async (req, res) => {
 exports.resetPassword = async (req, res) => {
   try {
     const verifyToken = await utils.verfiyToken(req.params.token);
-    const user = await User.getUserByEmail(verifyToken.email);
+    const user = await User.getUserByProp(verifyToken.email);
 
     if (user) {
       const newPassword = await bcryptjs.hash(req.body.password, 10);
@@ -190,7 +190,7 @@ exports.verify = async (req, res) => {
   try {
     const verifyToken = await utils.verfiyToken(req.params.token);
     
-    const user = await User.getUserByEmail(verifyToken.email);
+    const user = await User.getUserByProp(verifyToken.email);
     
     if (user) {
       await User.updateOne(

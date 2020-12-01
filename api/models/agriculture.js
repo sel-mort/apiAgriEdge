@@ -4,6 +4,7 @@ const bcryptjs = require('bcryptjs');
 const agricultureSchema = new Schema({
     userId: { type: String, required: true },
     name: { type: String, required: true },
+    position: { type: Array, required: true },
     previousHarvest: { type: String },
     previousYield: { type: Number},
     dateOfPlanting: { type: Date },

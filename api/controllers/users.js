@@ -182,7 +182,7 @@ exports.resetPassword = async (req, res) => {
           'ar': 'هناك خطأ ما',
           'fr': 'quelque chose s\'est mal passé'
         }
-      })
+      });
   }
 }
 
@@ -209,6 +209,37 @@ exports.verify = async (req, res) => {
     res.status(400).send({ error: {'en': 'invalid token', 'fr': 'jeton invalide', 'ar': 'رمز غير صالح'} });
   }
 };
+
+exports.verifyPhone = async (req, res) => {
+  try {
+    utils.verificationPhone(req.body.phone, (result, code) => {
+      if (!result) {
+        res.status(401).send({
+          error: {
+            'en': 'something went wrong',
+            'ar': 'هناك خطأ ما',
+            'fr': 'quelque chose s\'est mal passé'
+          }
+        });
+      }
+      else res.status(200).send({
+        message: {
+          'en': code,
+          'ar': code,
+          'fr': code
+        }
+      });
+    });
+  } catch (err) {
+    return res.status(401).send({
+      error: {
+        'en': 'something went wrong',
+        'ar': 'هناك خطأ ما',
+        'fr': 'quelque chose s\'est mal passé'
+      }
+    })
+  }
+}
 
 exports.update = async (req, res, next) => {
   try {

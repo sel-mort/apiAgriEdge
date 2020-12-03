@@ -13,4 +13,6 @@ router.post('/forgotpassword', userValidator.forgotPasswordValidator, usersContr
 
 router.post('/resetpassword', userValidator.resetPasswordValidator, usersController.resetPassword);
 
+router.post('/phonevalidation', userValidator.phoneValidator, usersController.verifyPhone);
+
 module.exports = router;

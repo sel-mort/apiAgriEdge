@@ -3,6 +3,8 @@
       "JWT_KEY": "apiAgriEdge",
       "DATABASE_URL": "mongodb+srv://oussama:tf3laychf@agriedge.idzlf.mongodb.net/apiagriedge?retryWrites=true&w=majority",
       "EMAIL": "oussbak16@gmail.com",
-      "EMAIL_PASSWORD": "ptudootdtysfdgxl"
+      "EMAIL_PASSWORD": "ptudootdtysfdgxl",
+      "BULKSMS_USERNAME": "agriedge",
+      "BULKSMS_PASSWORD": "Agriedge2020"
     }
   }

@@ -42,8 +42,14 @@ userSchema.statics.phoneExists = async phone => {
   return !!user;
 };
 
-userSchema.statics.getUserByProp = async prop => {
-  const user = await model('User').findOne({ prop });
+userSchema.statics.getUserById = async id => {
+  const user = await model('User').findOne({ _id: id });
+
+  return user;
+};
+
+userSchema.statics.getUserByEmail = async email => {
+  const user = await model('User').findOne({ email: email });
 
   return user;
 };

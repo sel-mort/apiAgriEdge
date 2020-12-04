@@ -9,16 +9,13 @@ const targetHarvest = Joi.string().required();
 const targetYield = Joi.number().required();
 
 
-var position = Joi.object().keys({
-    lattitude: Joi.number().required(),
-    longitude: Joi.number().required()
-  });
+const position = Joi.array().items(Joi.array().items().min(2));
 
-const positions = Joi.array().ordered(position).required();
+//const positions = Joi.array().ordered(position).required();
 
 exports.createAgricultureValidator = Joi.object().keys({
     name: name,
-    positions: positions,
+    position: position,
     previousHarvest: previousHarvest,
     previousYield: previousYield,
     dateOfPlanting: dateOfPlanting,

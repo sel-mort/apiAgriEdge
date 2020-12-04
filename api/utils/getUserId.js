@@ -3,8 +3,9 @@ const User = require("../models/user");
 
 exports.userId = async (token, callback) => {
     token = await jwt.verfiyToken(token);
+    console.log(token)
     if (token) {
-        const user = User.getUserByProp(token._id);
+        const user = User.getUserById(token._id);
         if (user) return callback(token._id);
     }
     else {

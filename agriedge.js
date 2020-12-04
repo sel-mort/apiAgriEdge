@@ -10,7 +10,7 @@ const appRouter = require('./api/routes/app');
 
 const app = express();
 
-mongoose.connect("mongodb+srv://oussama:tf3laychf@agriedge.idzlf.mongodb.net/apiagriedge?retryWrites=true&w=majority", {
+mongoose.connect(process.env.DATABASE_URL, {
   useNewUrlParser: true,
   useUnifiedTopology: true,
   useCreateIndex: true

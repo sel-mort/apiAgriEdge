@@ -5,7 +5,6 @@ exports.verificationPhone = (phone, callback) => {
     try {
         bulk.setUsername(process.env.BULKSMS_USERNAME);
         bulk.setPassword(process.env.BULKSMS_PASSWORD);
-        console.log(process.env)
         const code = random.int(1111, 9999);
         bulk.sendMessage('Votre code de validation pour finir votre inscription sur Agrisamad est: '+ code +'. https://www.agrisamad.com/', 
             phone, (result) => {
@@ -17,13 +16,11 @@ exports.verificationPhone = (phone, callback) => {
                         callback(true, code);
 
                 } catch (err) {
-                    console.log(err)
                     callback(false, code);
                 }
             });
         // verification phone here
     } catch (err) {
-        console.log(err);
         callback(false, code);
     }
 }

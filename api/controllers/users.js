@@ -3,6 +3,9 @@ const utils = require('../utils');
 const User = require('../models/user');
 
 const bcryptjs = require("bcryptjs");
+const { model } = require('../models/user');
+
+const { userId } = require('../utils/getUserId');
 
 //const passport = require('../middlewares/passport');
 
@@ -69,8 +72,7 @@ exports.create = async (req, res) => {
 
 exports.login = async (req, res) => {
   try {
-    const user = await User.getUserByProp(req.body.email);
-
+    const user = await User.getUserByEmail(req.body.email);
     if (user) {
       const isValidPassword = await bcryptjs.compare(req.body.password, user.password);
       if (isValidPassword) {
@@ -88,6 +90,12 @@ exports.login = async (req, res) => {
               'fr': "email non vérifié, vérifiez votre boîte de réception"
             } });
         }
+      } else {
+        return res.status(401).send({ error: { 
+          'en': 'invalid credentials',
+          'ar': 'بيانات الاعتماد غير صالحة',
+          'fr': 'les informations d\'identification invalides'
+        } });
       }
     } else {
       return res.status(401).send({ error: { 
@@ -110,31 +118,40 @@ exports.login = async (req, res) => {
 
 exports.forgotPassword = async (req, res) => {
   try {
-    const token = utils.generateToken({email: req.body.email});
-    const sendMail = utils.sendEmail(req.body.email, 'reset password',
-      `<a href="https://localhost:4200/users/resetpassword/${token}">reset my password</a>`);
+    const user = await User.findOne({email: req.body.email}).select('email');
+    if (user) {
+      const token = utils.generateToken({email: user.email});
+      const sendMail = utils.sendEmail(user.email, 'reset password',
+        `<a href="https://localhost:4200/users/resetpassword/${token}">reset my password</a>`);
 
-    if (sendMail) {
-      return res.status(200).send({
-        message: {
-          'en': 'reset password email sent',
-          'ar': 'تم إرسال البريد الإلكتروني لإعادة تعيين كلمة المرور',
-          'fr': 'e-mail de réinitialisation du mot de passe envoyé'
-        }
-      })
-    }
-    else {
+      if (sendMail) {
+        return res.status(200).send({
+          message: {
+            'en': 'reset password email sent',
+            'ar': 'تم إرسال البريد الإلكتروني لإعادة تعيين كلمة المرور',
+            'fr': 'e-mail de réinitialisation du mot de passe envoyé'
+          }
+        })
+      }
+      else {
+        return res.status(400).send({
+          error: {
+            'en': 'something went wrong',
+            'ar': 'هناك خطأ ما',
+            'fr': 'quelque chose s\'est mal passé'
+          }
+        });
+      }
+    } else {
       return res.status(400).send({
         error: {
-          'en': 'something went wrong',
-          'ar': 'هناك خطأ ما',
-          'fr': 'quelque chose s\'est mal passé'
+          'en': 'Invalid email',
+          'ar': 'بريد إلكتروني خاطئ',
+          'fr': 'email invalide'
         }
       });
     }
-
   } catch (err) {
-
     return res.status(400).send({
       error: {
         'en': 'something went wrong',
@@ -147,34 +164,35 @@ exports.forgotPassword = async (req, res) => {
 
 exports.resetPassword = async (req, res) => {
   try {
-    const verifyToken = await utils.verfiyToken(req.params.token);
-    const user = await User.getUserByProp(verifyToken.email);
-
-    if (user) {
-      const newPassword = await bcryptjs.hash(req.body.password, 10);
-      await User.updateOne(
-        { email: user.email },
-        {
-          $set: { password: newPassword }
-        }
-      );
-      return res.status(200).send({
-        message: {
-          'en': 'password reseted successfully',
-          'fr': 'réinitialisation du mot de passe avec succès',
-          'ar': 'تمت إعادة تعيين كلمة المرور بنجاح'
-        } });
-    }
-    else {
-      return res.status(401).send({
-        error: {
-          'en': 'something went wrong',
-          'ar': 'هناك خطأ ما',
-          'fr': 'quelque chose s\'est mal passé'
-        }
-      })
-    }
-
+    console.log(req.headers.authorization)
+    userId(req.headers.authorization.split(' ')[1], async (id) => {
+      const user = await User.findOne({ _id: id });
+      console.log(user);
+      if (user) {
+        const newPassword = await bcryptjs.hash(req.body.password, 10);
+        await User.updateOne(
+          { email: user.email },
+          {
+            $set: { password: newPassword }
+          }
+        );
+        return res.status(200).send({
+          message: {
+            'en': 'password reseted successfully',
+            'fr': 'réinitialisation du mot de passe avec succès',
+            'ar': 'تمت إعادة تعيين كلمة المرور بنجاح'
+          } });
+      }
+      else {
+        return res.status(401).send({
+          error: {
+            'en': 'something went wrong',
+            'ar': 'هناك خطأ ما',
+            'fr': 'quelque chose s\'est mal passé'
+          }
+        })
+      }
+    });
   } catch (err) {
       return res.status(401).send({
         error: {
@@ -189,9 +207,8 @@ exports.resetPassword = async (req, res) => {
 exports.verify = async (req, res) => {
   try {
     const verifyToken = await utils.verfiyToken(req.params.token);
-    
-    const user = await User.getUserByProp(verifyToken.email);
-    
+    console.log(verifyToken.email)
+    const user = await User.getUserByEmail(verifyToken.email);
     if (user) {
       await User.updateOne(
         { email: user.email },

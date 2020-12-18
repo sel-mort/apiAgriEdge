@@ -19,7 +19,7 @@ exports.getUserByUsernameValidator = Joi.object().keys({ username: Joi.string().
 
 exports.forgotPasswordValidator = Joi.object().keys({ email: email });
 
-exports.resetPasswordValidator = Joi.object().keys({ password: password, repeatPassword: repeatPassword});
+exports.resetPasswordValidator = Joi.object().keys({ password: password, repeatPassword: repeatPassword, email: email});
 
 exports.verficationValidator = Joi.object().keys({ token: token });
 

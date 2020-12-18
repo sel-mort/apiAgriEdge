@@ -84,7 +84,7 @@ exports.login = async (req, res) => {
           return res.status(200).send({ message: { 'en': token, 'ar': token, 'fr': token} });
 
         } else {
-            return res.status(200).send({ message: {
+            return res.status(401).send({ error: {
               'en': "email not verified, check your inbox",
               'ar': "لم يتم التحقق من البريد الإلكتروني ، تحقق من صندوق الوارد الخاص بك",
               'fr': "email non vérifié, vérifiez votre boîte de réception"
@@ -118,7 +118,7 @@ exports.login = async (req, res) => {
 
 exports.forgotPassword = async (req, res) => {
   try {
-    const user = await User.findOne({email: req.body.email}).select('email');
+    const user = await User.getUserByEmail(req.body.email);
     if (user) {
       const token = utils.generateToken({email: user.email});
       const sendMail = utils.sendEmail(user.email, 'reset password',
@@ -152,6 +152,7 @@ exports.forgotPassword = async (req, res) => {
       });
     }
   } catch (err) {
+    console.log(err)
     return res.status(400).send({
       error: {
         'en': 'something went wrong',
@@ -164,36 +165,33 @@ exports.forgotPassword = async (req, res) => {
 
 exports.resetPassword = async (req, res) => {
   try {
-    console.log(req.headers.authorization)
-    userId(req.headers.authorization.split(' ')[1], async (id) => {
-      const user = await User.findOne({ _id: id });
-      console.log(user);
-      if (user) {
-        const newPassword = await bcryptjs.hash(req.body.password, 10);
-        await User.updateOne(
-          { email: user.email },
-          {
-            $set: { password: newPassword }
-          }
-        );
-        return res.status(200).send({
-          message: {
-            'en': 'password reseted successfully',
-            'fr': 'réinitialisation du mot de passe avec succès',
-            'ar': 'تمت إعادة تعيين كلمة المرور بنجاح'
-          } });
-      }
-      else {
-        return res.status(401).send({
-          error: {
-            'en': 'something went wrong',
-            'ar': 'هناك خطأ ما',
-            'fr': 'quelque chose s\'est mal passé'
-          }
-        })
-      }
-    });
+    const user = await User.getUserByEmail(req.body.email);
+    if (user) {
+      const newPassword = await bcryptjs.hash(req.body.password, 10);
+      await User.updateOne(
+        { email: user.email },
+        {
+          $set: { password: newPassword }
+        }
+      );
+      return res.status(200).send({
+        message: {
+          'en': 'password reseted successfully',
+          'fr': 'réinitialisation du mot de passe avec succès',
+          'ar': 'تمت إعادة تعيين كلمة المرور بنجاح'
+        } });
+    }
+    else {
+      return res.status(401).send({
+        error: {
+          'en': 'Invalid User',
+          'ar': 'مستخدم غير صالح',
+          'fr': 'Utilisateur invalide'
+        }
+      })
+    }
   } catch (err) {
+    console.log(err);
       return res.status(401).send({
         error: {
           'en': 'something went wrong',
@@ -216,14 +214,14 @@ exports.verify = async (req, res) => {
           $set: { emailVerified: true }
         }
       );
-      res.status(200).send({ message: {'en': 'user verified', 'fr': 'utilisateur vérifié', 'ar': 'تم التحقق من المستخدم'} });
+      return res.status(200).send({ message: {'en': 'user verified', 'fr': 'utilisateur vérifié', 'ar': 'تم التحقق من المستخدم'} });
     }
     else {
-      res.status(400).send({ error: {'en': 'invalid token', 'fr': 'jeton invalide', 'ar': 'رمز غير صالح'} });
+      return res.status(400).send({ error: {'en': 'invalid token', 'fr': 'jeton invalide', 'ar': 'رمز غير صالح'} });
     }
     
   } catch (err) {
-    res.status(400).send({ error: {'en': 'invalid token', 'fr': 'jeton invalide', 'ar': 'رمز غير صالح'} });
+    return res.status(400).send({ error: {'en': 'invalid token', 'fr': 'jeton invalide', 'ar': 'رمز غير صالح'} });
   }
 };
 
@@ -292,7 +290,7 @@ exports.update = async (req, res, next) => {
 
     user = await user.save();
 
-    res.status(200).send({ message: 'User updated', user });
+    return res.status(200).send({ message: 'User updated', user });
   } catch (err) {
     next(err);
   }
@@ -305,3 +303,26 @@ exports.me = (req, res, next) => {
     next(err);
   }
 };
+
+exports.checkToken = async (req, res, next) => {
+  try {
+    const resultToken = await utils.verfiyToken(req.body.token);
+    const user = await User.getUserByEmail(resultToken.email);
+    if (user) {
+      return res.status(200).send({
+        message: {'en': 'token valid', 'fr': 'jeton valide', 'ar': 'رمز صالح'},
+        email: resultToken.email
+     });
+    }
+    else {
+      return res.status(401).send({ error: {'en': 'invalid token', 'fr': 'jeton invalide', 'ar': 'رمز غير صالح'} });
+    }
+
+  } catch (err) {
+    return res.status(401).send({
+      error: {
+        'en': 'invalid token', 'fr': 'jeton invalide', 'ar': 'رمز غير صالح'
+      }
+    })
+  }
+}

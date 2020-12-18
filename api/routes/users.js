@@ -15,4 +15,6 @@ router.post('/resetpassword', userValidator.resetPasswordValidator, usersControl
 
 router.post('/phonevalidation', userValidator.phoneValidator, usersController.verifyPhone);
 
+router.post('/checkToken', usersController.checkToken);
+
 module.exports = router;

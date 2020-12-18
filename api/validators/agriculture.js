@@ -6,7 +6,6 @@ const previousYield = Joi.number();
 const dateOfPlanting = Joi.date();
 const irrigationSystem = Joi.string();
 const targetHarvest = Joi.string().required();
-const targetYield = Joi.number().required();
 
 
 const position = Joi.array().items(Joi.array().items().min(2));
@@ -21,6 +20,5 @@ exports.createAgricultureValidator = Joi.object().keys({
     dateOfPlanting: dateOfPlanting,
     irrigationSystem: irrigationSystem,
     targetHarvest: targetHarvest,
-    targetYield: targetYield,
 });
 

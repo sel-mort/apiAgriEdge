@@ -36,21 +36,21 @@ userSchema.statics.emailExists = async email => {
   return !!user;
 };
 
-userSchema.statics.phoneExists = async phone => {
-  const user = await model('User').findOne({ phone });
+userSchema.statics.phoneExists = async (phone) => {
+  const user = await model('User').findOne({ phone: phone });
 
   return !!user;
 };
 
-userSchema.statics.getUserById = async id => {
-  const user = await model('User').findOne({ _id: id });
+userSchema.statics.getUserById = async (id) => {
+  const user = await model('User').findById(id);
 
   return user;
 };
 
-userSchema.statics.getUserByEmail = async email => {
-  const user = await model('User').findOne({ email: email });
-
+userSchema.statics.getUserByEmail = async (email) => {
+  const user = await model('User').findOne({ email });
+  
   return user;
 };
 

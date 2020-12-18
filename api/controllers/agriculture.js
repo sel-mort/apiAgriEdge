@@ -3,6 +3,7 @@ const {userId} = require('../utils/getUserId');
 const Agriculture = require('../models/agriculture');
 
 exports.create =  (req, res) => {
+  console.log(req.body)
     try {
         userId(req.headers.authorization.split(' ')[1], async (id) => {
           if (!id) {
